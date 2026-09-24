@@ -1,0 +1,12 @@
+--- a/templates/main_login.tpl.htm
++++ b/templates/main_login.tpl.htm
+@@ -29,6 +29,9 @@
+   <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2.css' />
+   <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/select2-bootstrap.css' />
+   <link rel='stylesheet' href='../themes/<tmpl_var name='current_theme'>/assets/stylesheets/login.css' />
++  <!-- dark login when the OS/browser prefers dark (ISPConfigDarkTheme patch) -->
++  <link rel='stylesheet' media='(prefers-color-scheme: dark)' href='../themes/dark/assets/stylesheets/dark.css' />
++  <link rel='stylesheet' media='(prefers-color-scheme: dark)' href='../themes/dark/assets/stylesheets/dark-extra.css' />
+ </head>
+ 
+ <body>
