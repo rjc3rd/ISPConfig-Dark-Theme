@@ -848,13 +848,45 @@ $(document).ready(function() {
 });
 
 
+function selectEmailDomain(domain) {
+    var email_domain = $('#email_domain');
+    var selected_option = email_domain.find('option:selected');
+    var selected_value = '';
+    domain = $.trim(domain).toLowerCase();
+
+    if (selected_option.length && ((selected_option.attr('data-domain') || '').toLowerCase() == domain || (selected_option.attr('data-domain-ascii') || '').toLowerCase() == domain)) {
+        selected_value = selected_option.val();
+    } else {
+        email_domain.find('option').each(function () {
+            var option = $(this);
+            if ((option.attr('data-domain') || '').toLowerCase() == domain || (option.attr('data-domain-ascii') || '').toLowerCase() == domain) {
+                selected_value = option.val();
+                return false;
+            }
+        });
+    }
+
+    if (selected_value != '') {
+        email_domain.val(selected_value);
+        email_domain.trigger('change');
+        return true;
+    }
+
+    return false;
+};
+
+function getEmailDomain(e) {
+    var selected_option = $(e).find('option:selected');
+    return selected_option.attr('data-domain') || selected_option.val();
+};
+
 function processEmailAddressInput(e) {
     setTimeout(function () {
         if (/@/.test(e.value)) {
             var parts = e.value.split('@');
-            $('#email_domain').val(parts.pop());
-            $('#email_domain').trigger('change');
-            e.value = parts.pop();
+            if (selectEmailDomain(parts.pop())) {
+                e.value = parts.pop();
+            }
         }
     }, 4);
 };
@@ -862,9 +894,9 @@ function processEmailAddressInput(e) {
 function updateEmailDomain(e) {
     if (/@/.test(e.value)) {
         var parts = e.value.split('@');
-        $('#email_domain').val(parts.pop());
-        $('#email_domain').trigger('change');
-        e.value = parts.pop();
+        if (selectEmailDomain(parts.pop())) {
+            e.value = parts.pop();
+        }
     }
 };
 
