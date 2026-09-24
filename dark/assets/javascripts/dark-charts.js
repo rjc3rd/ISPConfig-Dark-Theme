@@ -8,4 +8,17 @@
   // The metrics dashlet paints its legend swatch white (meant to vanish on
   // the old white canvas); drop the swatch instead.
   Chart.defaults.plugins.legend.labels.boxWidth = 0;
+  // Its custom generateLabels() also omits fontColor, and Chart.js 4 draws
+  // legend text with the item's fontColor (black when unset). Fill it in
+  // after the built-in legend plugin has built its items.
+  Chart.register({
+    id: 'darkLegendText',
+    afterUpdate: function (chart) {
+      var items = chart.legend && chart.legend.legendItems;
+      if (!items) return;
+      items.forEach(function (item) {
+        if (!item.fontColor) item.fontColor = Chart.defaults.color;
+      });
+    }
+  });
 })();

@@ -6,6 +6,10 @@ Built for **ISPConfig 3.3.2p1**. It's an unofficial theme, not affiliated with I
 
 Discussion and feedback: [HowtoForge forum thread](https://forum.howtoforge.com/threads/dark-theme-for-ispconfig-3-3-2p1-open-source.95383/)
 
+![Dashboard](screenshots/dashboard.png)
+
+![Login page](screenshots/login.png)
+
 ## Install
 
 On the ISPConfig server, as root:
