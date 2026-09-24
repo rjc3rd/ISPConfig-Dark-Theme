@@ -57,7 +57,7 @@ COLOR_TOKEN = re.compile(
     re.I,
 )
 
-# Palette (2026-09-24, after the user's old theme): neutral greys, flat
+# Palette, modeled on rjc3rd's original dark theme: neutral greys, flat
 # two-tone surfaces, medium-grey borders.
 PAGE_L = 0.125      # white page/panel fills -> #202020
 SURFACE_L = 0.25    # white fills on controls/tabs/sidebar -> #404040

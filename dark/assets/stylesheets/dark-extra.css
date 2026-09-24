@@ -66,7 +66,7 @@
   text-decoration: underline;
 }
 
-/* Flat two-tone layout, after the user's old theme: sidebar section headers
+/* Flat two-tone layout (rjc3rd's original dark theme): sidebar section headers
  * sit on the page tone, list-table header rows are raised #404040, and the
  * sidebar/tab borders use the same medium grey as everything else. */
 #sidebar header {
