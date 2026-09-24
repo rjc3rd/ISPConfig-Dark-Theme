@@ -38,8 +38,9 @@ COLOR_PROPS = re.compile(
     r"^(color|background(-color|-image)?|border(-(top|right|bottom|left))?(-color)?"
     r"|outline(-color)?|fill|stroke|caret-color|column-rule(-color)?)$"
 )
-# Shadows keep their original (dark) colors — inverting them makes glows.
-SKIP_PROPS = {"box-shadow", "text-shadow", "filter", "-webkit-box-shadow"}
+# Dark shadows are kept; only light ones (white emboss effects) are remapped,
+# since inverting a dark shadow turns it into a glow.
+SHADOW_PROPS = re.compile(r"^(-webkit-)?(box|text)-shadow$")
 
 NAMED = {
     "white": (255, 255, 255), "black": (0, 0, 0), "red": (255, 0, 0),
@@ -98,6 +99,10 @@ def remap(tok, prop):
     h, l, s = hls((r, g, b))
     if a is not None and a == 0:
         return tok  # transparent stays transparent
+    if prop == "color" and l > 0.85:
+        return tok  # white text only ever sat on a dark/colored fill
+    if prop.startswith("background") and 0.3 < l < 0.6 and s < 0.12:
+        return tok  # mid-grey fills (badges, labels) already work on dark
     # Lightness inversion: white -> ~#161d24 page tone, black -> ~#e4e7ea text.
     nl = 0.93 - 0.82 * l
     if s < 0.12:
@@ -116,7 +121,49 @@ def is_accent(tok):
     if p is None or p[3] == 0:
         return False
     h, l, s = hls(p[:3])
-    return s > 0.35 and 0.25 < l < 0.68
+    return s > 0.35 and 0.25 < l < 0.72
+
+
+def lightness(tok):
+    p = parse(tok)
+    if p is None or p[3] == 0:
+        return None
+    return hls(p[:3])[1]
+
+
+def luminance(rgb):
+    def ch(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (ch(c) for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def darken_for_white(tok, target=4.5):
+    """Darken a fill until white text on it meets `target` contrast.
+
+    Fills that already pass are unchanged. Ones that don't are pulled below
+    the threshold in proportion to how light they were, so a hover state
+    that was darker than its base stays darker.
+    """
+    p = parse(tok)
+    if p is None or p[3] == 0:
+        return tok
+    r, g, b, a = p
+    h, l, s = hls((r, g, b))
+    if 1.05 / (luminance((r, g, b)) + 0.05) >= target:
+        return tok
+    lo, hi = 0.0, l  # largest lightness that passes
+    for _ in range(20):
+        mid = (lo + hi) / 2
+        rgb = [c * 255 for c in colorsys.hls_to_rgb(h, mid, s)]
+        if 1.05 / (luminance(rgb) + 0.05) >= target:
+            lo = mid
+        else:
+            hi = mid
+    nl = max(0.12, lo * (1 - 0.6 * max(0, 0.72 - l)))
+    nr, ng, nb = (round(c * 255) for c in colorsys.hls_to_rgb(h, nl, s))
+    return fmt(nr, ng, nb, a)
 
 
 def strip_comments(css):
@@ -156,20 +203,46 @@ def decls(body):
 def convert_rule(sel, body, stats):
     ds = list(decls(body))
     color_ds = [(p, v) for p, v in ds
-                if COLOR_PROPS.match(p) and p not in SKIP_PROPS
+                if (COLOR_PROPS.match(p) or SHADOW_PROPS.match(p))
                 and COLOR_TOKEN.search(v) and "progid" not in v]
     if not color_ds:
         return None
-    # A rule that paints a saturated accent fill (buttons, labels, badges,
-    # progress bars) already reads fine on dark: leave it as-is.
-    for p, v in color_ds:
-        if p.startswith("background") and any(
-                is_accent(m.group(0)) for m in COLOR_TOKEN.finditer(v)):
-            stats["accent_kept"] += 1
-            return None
+
+    def toks(pred):
+        return [m.group(0) for p, v in color_ds if pred(p)
+                for m in COLOR_TOKEN.finditer(v)]
+    bg = [t for t in toks(lambda p: p.startswith("background"))
+          if lightness(t) is not None]
+    text_l = [lightness(t) for t in toks(lambda p: p == "color")]
+    light_text = any(l is not None and l > 0.85 for l in text_l)
+
+    # Rules are never dropped, only passed through unchanged, so a kept rule
+    # still beats earlier same-specificity rules exactly as it did before.
+    if bg and light_text and all(lightness(t) < 0.5 for t in bg):
+        # Already light-on-dark (dark table headers, tooltips, badges).
+        mode = "keep"
+        stats["dark_kept"] += 1
+    elif any(is_accent(t) for t in bg):
+        # Saturated fill (buttons, labels, progress bars): keep the hue,
+        # darken just enough for white text to stay readable.
+        mode = "accent"
+        stats["accent"] += 1
+    else:
+        mode = "remap"
+
     out = []
     for p, v in color_ds:
-        nv = COLOR_TOKEN.sub(lambda m: remap(m.group(0), p), v)
+        if mode == "keep" or (SHADOW_PROPS.match(p) and mode == "accent"):
+            nv = v
+        elif mode == "accent":
+            nv = v if p == "color" else COLOR_TOKEN.sub(
+                lambda m: darken_for_white(m.group(0)), v)
+        elif SHADOW_PROPS.match(p):
+            nv = COLOR_TOKEN.sub(
+                lambda m: remap(m.group(0), p)
+                if (lightness(m.group(0)) or 0) > 0.7 else m.group(0), v)
+        else:
+            nv = COLOR_TOKEN.sub(lambda m: remap(m.group(0), p), v)
         out.append("  %s: %s;" % (p, nv))
         stats["decls"] += 1
     stats["rules"] += 1
@@ -205,12 +278,13 @@ def main():
         ":root { color-scheme: dark; }",
     ]
     for name in SOURCES:
-        stats = {"rules": 0, "decls": 0, "accent_kept": 0}
+        stats = {"rules": 0, "decls": 0, "accent": 0, "dark_kept": 0}
         body = convert((CSS / name).read_text(encoding="utf-8"), stats)
         parts.append("\n/* ---- %s ---- */\n%s" % (name, body))
         if report:
-            print("%-36s %4d rules  %4d decls  %3d accent rules kept"
-                  % (name, stats["rules"], stats["decls"], stats["accent_kept"]))
+            print("%-36s %4d rules  %4d decls  %3d accent  %3d already-dark"
+                  % (name, stats["rules"], stats["decls"], stats["accent"],
+                     stats["dark_kept"]))
     OUT.write_text("\n".join(parts) + "\n", encoding="utf-8")
     print("wrote", OUT.relative_to(ROOT))
 

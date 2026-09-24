@@ -36,3 +36,32 @@
 /* module.tpl.htm / module_tree.tpl.htm legacy bgcolor attributes */
 [bgcolor="#DEE4F2"] { background-color: #232a31; }
 [bgcolor="#F4F6FB"] { background-color: #1c2228; }
+
+/* Top navigation tabs: no red text/icons on grey. Active tab gets light
+ * text on a lighter tile, with a red bar along the bottom as the only red. */
+#main-navigation a:hover,
+#main-navigation a.active {
+  color: #e4e7ea;
+}
+#main-navigation a:hover {
+  background: linear-gradient(to bottom, #232a31, #1f252b);
+}
+#main-navigation a.active,
+#main-navigation a.active:hover {
+  background: linear-gradient(to bottom, #2a323a, #242b32);
+  box-shadow: inset 0 -3px 0 #d9262e;
+}
+#main-navigation a.active * {
+  color: inherit;
+}
+
+/* List tables: row links read as text, turn blue on hover. Links in normal
+ * text elsewhere stay blue. */
+.table tbody td > a:not(.btn) {
+  color: #dfe3e7;
+}
+.table tbody td > a:not(.btn):hover,
+.table tbody td > a:not(.btn):focus {
+  color: #68a2d5;
+  text-decoration: underline;
+}
