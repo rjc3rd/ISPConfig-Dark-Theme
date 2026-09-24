@@ -4,6 +4,8 @@ A dark theme for the ISPConfig 3 control panel. Neutral greys, flat two-tone sur
 
 Built for **ISPConfig 3.3.2p1**. It's an unofficial theme, not affiliated with ISPConfig.
 
+Discussion and feedback: [HowtoForge forum thread](https://forum.howtoforge.com/threads/dark-theme-for-ispconfig-3-3-2p1-open-source.95383/)
+
 ## Install
 
 On the ISPConfig server, as root:
