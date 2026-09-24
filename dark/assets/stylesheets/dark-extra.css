@@ -10,7 +10,7 @@
 
 /* main_login.tpl.htm: inline white -> #eef0f2 gradient on the panel heading */
 .panel-heading[style*="linear-gradient"] {
-  background: linear-gradient(to bottom, #232a31, #1c2228) !important;
+  background: #202020 !important;
 }
 
 /* monitor/show_sys_state.htm, dashboard/dashlets/metrics.htm, donate.htm */
@@ -18,7 +18,7 @@
 [style*="background-color:white"],
 [style*="background-color:#FFFFFF"],
 [style*="background-color: #FFFFFF"] {
-  background-color: #1c2228 !important;
+  background-color: #282828 !important;
 }
 
 /* sites/ftp_sites_stats_list.htm */
@@ -34,21 +34,21 @@
 }
 
 /* module.tpl.htm / module_tree.tpl.htm legacy bgcolor attributes */
-[bgcolor="#DEE4F2"] { background-color: #232a31; }
-[bgcolor="#F4F6FB"] { background-color: #1c2228; }
+[bgcolor="#DEE4F2"] { background-color: #404040; }
+[bgcolor="#F4F6FB"] { background-color: #282828; }
 
 /* Top navigation tabs: no red text/icons on grey. Active tab gets light
  * text on a lighter tile, with a red bar along the bottom as the only red. */
 #main-navigation a:hover,
 #main-navigation a.active {
-  color: #e4e7ea;
+  color: #ececec;
 }
 #main-navigation a:hover {
-  background: linear-gradient(to bottom, #232a31, #1f252b);
+  background: #4a4a4a;
 }
 #main-navigation a.active,
 #main-navigation a.active:hover {
-  background: linear-gradient(to bottom, #2a323a, #242b32);
+  background: #555555;
   box-shadow: inset 0 -3px 0 #d9262e;
 }
 #main-navigation a.active * {
@@ -58,10 +58,29 @@
 /* List tables: row links read as text, turn blue on hover. Links in normal
  * text elsewhere stay blue. */
 .table tbody td > a:not(.btn) {
-  color: #dfe3e7;
+  color: #ececec;
 }
 .table tbody td > a:not(.btn):hover,
 .table tbody td > a:not(.btn):focus {
   color: #68a2d5;
   text-decoration: underline;
+}
+
+/* Flat two-tone layout, after the user's old theme: sidebar section headers
+ * sit on the page tone, list-table header rows are raised #404040, and the
+ * sidebar/tab borders use the same medium grey as everything else. */
+#sidebar header {
+  background: #202020;
+  color: #ececec;
+}
+#sidebar,
+#sidebar li,
+.content-tab-wrapper .nav-tabs > li > a {
+  border-color: #666666 !important;
+}
+thead.dark {
+  background: #404040 !important;
+}
+thead.dark tr:nth-child(2) {
+  background: #202020 !important;
 }

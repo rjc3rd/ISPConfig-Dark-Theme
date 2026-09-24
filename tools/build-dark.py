@@ -57,7 +57,20 @@ COLOR_TOKEN = re.compile(
     re.I,
 )
 
-NEUTRAL_HUE = 210 / 360  # slight slate tint for greys
+# Palette (2026-09-24, after the user's old theme): neutral greys, flat
+# two-tone surfaces, medium-grey borders.
+PAGE_L = 0.125      # white page/panel fills -> #202020
+SURFACE_L = 0.25    # white fills on controls/tabs/sidebar -> #404040
+BORDER_L = 0.40     # light grey borders -> #666666
+
+# Rules whose light fills are "raised" controls rather than page/panel area.
+SURFACE_SEL = re.compile(
+    r"\.form-control|\.btn-default|\.formbutton-default|#searchform button"
+    r"|#main-navigation a|#sidebar(?!\s*header)|\.modules \.button"
+    r"|\.content-tab-wrapper \.nav-tabs(?!\s*\.active)(?!\s*>)"
+    r"|\.select2-choice|\.select2-choices|\.input-group-addon"
+    r"|\.dropdown-menu|\.pagination"
+)
 
 
 def parse(tok):
@@ -91,7 +104,7 @@ def fmt(r, g, b, a):
     return "rgba(%d, %d, %d, %s)" % (r, g, b, ("%.3f" % a).rstrip("0").rstrip("."))
 
 
-def remap(tok, prop):
+def remap(tok, prop, surface=False):
     p = parse(tok)
     if p is None:
         return tok
@@ -103,10 +116,18 @@ def remap(tok, prop):
         return tok  # white text only ever sat on a dark/colored fill
     if prop.startswith("background") and 0.3 < l < 0.6 and s < 0.12:
         return tok  # mid-grey fills (badges, labels) already work on dark
-    # Lightness inversion: white -> ~#161d24 page tone, black -> ~#e4e7ea text.
-    nl = 0.93 - 0.82 * l
-    if s < 0.12:
-        h, s = NEUTRAL_HUE, 0.14 if nl < 0.5 else 0.08
+    neutral = (max(r, g, b) - min(r, g, b)) / 255 < 0.06  # near-grey
+    if neutral and prop.startswith("border") and l > 0.5:
+        nl = BORDER_L
+    elif neutral and surface and prop.startswith("background") and l > 0.6:
+        # Raised control: near-white -> flat #404040; darker original states
+        # (hover, active) come out lighter, as raised surfaces do on dark.
+        nl = SURFACE_L + max(0, 0.93 - l) * 1.5
+    else:
+        # Lightness inversion: white -> #202020 page, black -> #ececec text.
+        nl = (0.925 + PAGE_L - 0.125) - 0.8 * l
+    if neutral:
+        s = 0
     elif l > 0.8:
         s *= 0.55  # pastel backgrounds -> muted dark tints, not neon mud
     if prop == "color" and s > 0.25 and nl < 0.62:
@@ -242,7 +263,8 @@ def convert_rule(sel, body, stats):
                 lambda m: remap(m.group(0), p)
                 if (lightness(m.group(0)) or 0) > 0.7 else m.group(0), v)
         else:
-            nv = COLOR_TOKEN.sub(lambda m: remap(m.group(0), p), v)
+            surf = bool(SURFACE_SEL.search(sel))
+            nv = COLOR_TOKEN.sub(lambda m: remap(m.group(0), p, surf), v)
         out.append("  %s: %s;" % (p, nv))
         stats["decls"] += 1
     stats["rules"] += 1
