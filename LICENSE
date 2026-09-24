@@ -3,12 +3,14 @@ Copyright (c) 2026, rjc3rd
 All rights reserved.
 
 The files added by this project (dark/assets/stylesheets/dark.css,
-dark/assets/stylesheets/dark-extra.css, tools/, patches/) are released under
+dark/assets/stylesheets/dark-extra.css, dark/assets/javascripts/dark-charts.js,
+tools/, patches/) are released under
 the same BSD 3-Clause terms as ISPConfig, reproduced below.
 
 Everything else under dark/ is ISPConfig's own default theme, copied unchanged
-apart from two stylesheet links in each of templates/main.tpl.htm and
-templates/main_login.tpl.htm, and is:
+apart from two stylesheet links in templates/main.tpl.htm and
+templates/main_login.tpl.htm and one script tag (dark-charts.js) in
+templates/main.tpl.htm, and is:
 
 Copyright (c) 2007-2020, Till Brehm, ISPConfig UG
 All rights reserved.

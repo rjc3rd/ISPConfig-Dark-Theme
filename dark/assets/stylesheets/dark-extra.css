@@ -2,10 +2,11 @@
  * Covers what isn't in any stylesheet: inline style="" / bgcolor in
  * templates (theme and module folders), and the logo image. */
 
-/* Logo: dark "ISP" text on transparent. Invert lightness, keep the red. */
+/* Logo: red mark + dark grey "ISPCONFIG" text on transparent. Brighten it so
+ * the grey reads on #202020; the red stays red (inverting turned it pink). */
 #logo,
 .panel-heading img {
-  filter: invert(1) hue-rotate(180deg);
+  filter: brightness(1.6);
 }
 
 /* main_login.tpl.htm: inline white -> #eef0f2 gradient on the panel heading */
