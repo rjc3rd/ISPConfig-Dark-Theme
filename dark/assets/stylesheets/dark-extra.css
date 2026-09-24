@@ -1,0 +1,38 @@
+/* Hand-written dark fixes — loaded after the generated dark.css.
+ * Covers what isn't in any stylesheet: inline style="" / bgcolor in
+ * templates (theme and module folders), and the logo image. */
+
+/* Logo: dark "ISP" text on transparent. Invert lightness, keep the red. */
+#logo,
+.panel-heading img {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* main_login.tpl.htm: inline white -> #eef0f2 gradient on the panel heading */
+.panel-heading[style*="linear-gradient"] {
+  background: linear-gradient(to bottom, #232a31, #1c2228) !important;
+}
+
+/* monitor/show_sys_state.htm, dashboard/dashlets/metrics.htm, donate.htm */
+[style*="background-color: white"],
+[style*="background-color:white"],
+[style*="background-color:#FFFFFF"],
+[style*="background-color: #FFFFFF"] {
+  background-color: #1c2228 !important;
+}
+
+/* sites/ftp_sites_stats_list.htm */
+[style*="color:black"],
+[style*="color: black"] {
+  color: inherit !important;
+}
+
+/* admin/system_config_dns_ca_edit.htm warning box */
+[style*="#ffdfdf"] {
+  background: #3b1e1e !important;
+  border-color: #662e30 !important;
+}
+
+/* module.tpl.htm / module_tree.tpl.htm legacy bgcolor attributes */
+[bgcolor="#DEE4F2"] { background-color: #232a31; }
+[bgcolor="#F4F6FB"] { background-color: #1c2228; }
